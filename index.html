@@ -2,354 +2,501 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>บันทึกตรวจสุขภาพพระสงฆ์</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ระบบตรวจสุขภาพพระสงฆ์</title>
     
-    <!-- Google Fonts: Noto Sans Thai -->
+    <!-- Google Fonts: Noto Sans Thai (Clean & Modern) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS CDN -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <!-- FontAwesome -->
+    <!-- FontAwesome (Minimal Usage) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Config Tailwind -->
+    <!-- Tailwind Config for Apple-like Aesthetics -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['"Noto Sans Thai"', 'sans-serif'] },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Noto Sans Thai"', 'Helvetica', 'Arial', 'sans-serif'],
+                    },
                     colors: {
-                        primary: '#059669', // Emerald 600
-                        primaryLight: '#34d399',
-                        secondary: '#0ea5e9', // Sky 500
-                        secondaryLight: '#e0f2fe',
-                        accent: '#f59e0b',
-                        bglight: '#f8fafc',
-                        card: '#ffffff',
+                        apple: {
+                            bg: '#f5f5f7',
+                            card: 'rgba(255, 255, 255, 0.7)',
+                            glass: 'rgba(255, 255, 255, 0.85)',
+                            text: '#1d1d1f',
+                            textMuted: '#86868b',
+                            blue: '#0071e3',
+                            blueHover: '#0077ED',
+                            green: '#34c759',
+                            orange: '#ff9500',
+                            red: '#ff3b30'
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 8px 32px 0 rgba(0, 0, 0, 0.04)',
+                        'hover': '0 12px 40px 0 rgba(0, 0, 0, 0.08)',
+                        'glass': '0 4px 24px -1px rgba(0, 0, 0, 0.05)'
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
                     }
                 }
             }
         }
     </script>
+    
     <style>
+        :root {
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+        }
+
         body {
-            background-color: #f8fafc;
-            color: #334155;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
             -webkit-font-smoothing: antialiased;
-            /* ป้องกันการเด้งเวลาเลื่อน (bounce effect) ในมือถือบางรุ่น */
+            -moz-osx-font-smoothing: grayscale;
             overscroll-behavior-y: none;
+            letter-spacing: -0.01em;
+            /* Restrained, near-monochrome ambient light — one cool accent, one warm.
+               No tri-color glow (that's the "AI template" tell). */
+            background-image:
+                radial-gradient(at 8% -5%, hsla(210, 60%, 92%, 0.55) 0px, transparent 45%),
+                radial-gradient(at 95% 8%, hsla(28, 70%, 94%, 0.40) 0px, transparent 42%),
+                radial-gradient(at 50% 110%, hsla(220, 30%, 90%, 0.35) 0px, transparent 55%);
+            background-attachment: fixed;
         }
-        
-        /* Mobile Bottom Nav Spacer */
-        .pb-nav { padding-bottom: 80px; }
-        
-        .card-shadow { box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05); border: 1px solid #f1f5f9; }
-        
-        /* Mobile-friendly Inputs */
-        .input-style {
-            @apply w-full px-4 py-3 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 bg-gray-50;
-        }
-        .label-style { @apply block text-sm font-semibold text-gray-700 mb-2; }
-        
-        /* Big Buttons */
-        .btn-primary { @apply w-full bg-primary hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition-colors active:scale-[0.98] text-lg flex items-center justify-center; }
-        .btn-secondary { @apply w-full bg-secondary hover:bg-sky-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg transition-colors active:scale-[0.98] text-lg flex items-center justify-center; }
-        .btn-outline { @apply w-full bg-white border-2 border-gray-200 text-gray-700 font-bold py-3.5 px-4 rounded-xl hover:bg-gray-50 transition-colors active:scale-[0.98] text-lg flex items-center justify-center; }
 
-        /* Loader */
+        /* Tabular numerals so animated counters don't jitter */
+        .counter, .tabular { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+        /* Glassmorphism — layered depth (ambient + key light + inner sheen) */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(24px) saturate(160%);
+            -webkit-backdrop-filter: blur(24px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow:
+                0 1px 1px rgba(0, 0, 0, 0.02),
+                0 8px 24px -8px rgba(17, 24, 39, 0.10),
+                inset 0 1px 0 rgba(255, 255, 255, 0.7);
+        }
+
+        .glass-header {
+            background: rgba(245, 245, 247, 0.72);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        /* Card hover — subtle lift, lighter glass, brighter edge */
+        .card-hover-effect {
+            transition: transform 0.5s var(--ease-out-expo),
+                        box-shadow 0.5s var(--ease-out-expo),
+                        background 0.5s var(--ease-out-expo);
+            will-change: transform;
+        }
+        .card-hover-effect:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow:
+                0 2px 2px rgba(0, 0, 0, 0.02),
+                0 20px 44px -12px rgba(17, 24, 39, 0.16),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+        @media (hover: none) { .card-hover-effect:hover { transform: none; } }
+
+        /* Apple-style Inputs */
+        .input-apple {
+            @apply w-full px-4 py-3.5 text-[15px] bg-white/90 border border-gray-200/80 rounded-2xl focus:outline-none focus:ring-4 focus:ring-apple-blue/15 focus:border-apple-blue transition-all duration-300;
+            box-shadow: inset 0 1px 2px rgba(17, 24, 39, 0.04);
+        }
+        /* Labels: NO uppercase / NO letter-spacing — both break Thai script.
+           Quiet, medium-weight muted label instead. */
+        .label-apple { @apply block text-[13px] font-semibold text-apple-textMuted mb-1.5 ml-1; letter-spacing: 0; }
+
+        /* Modern Buttons */
+        .btn-apple-primary {
+            @apply w-full bg-apple-blue hover:bg-apple-blueHover text-white font-semibold py-3.5 px-6 rounded-2xl transition-all duration-300 active:scale-[0.97] text-base flex items-center justify-center;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.04), 0 8px 20px -6px rgba(0, 113, 227, 0.55);
+        }
+        .btn-apple-secondary {
+            @apply w-full bg-white/80 hover:bg-white border border-gray-200 text-apple-text font-semibold py-3.5 px-6 rounded-2xl transition-all duration-300 active:scale-[0.97] text-base flex items-center justify-center shadow-sm;
+        }
+
+        /* Floating Nav Island */
+        .nav-island {
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(28px) saturate(180%);
+            -webkit-backdrop-filter: blur(28px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow:
+                0 1px 1px rgba(0,0,0,0.04),
+                0 16px 40px -8px rgba(17, 24, 39, 0.22),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+
+        /* Loading Screen Premium */
         #loader {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.9); z-index: 9999;
-            justify-content: center; align-items: center; flex-direction: column;
+            display: none; position: fixed; inset: 0;
+            background: rgba(245, 245, 247, 0.55);
+            backdrop-filter: blur(12px) saturate(160%); -webkit-backdrop-filter: blur(12px) saturate(160%);
+            z-index: 9999; justify-content: center; align-items: center; flex-direction: column;
+            animation: loaderFade 0.3s ease-out;
         }
-        .spinner { border: 4px solid #e5e7eb; width: 50px; height: 50px; border-radius: 50%; border-left-color: #059669; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Badges */
-        .badge { @apply px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full; }
-        .badge-green { @apply bg-green-100 text-green-700; }
-        .badge-yellow { @apply bg-yellow-100 text-yellow-700; }
-        .badge-orange { @apply bg-orange-100 text-orange-700; }
-        .badge-red { @apply bg-red-100 text-red-700; }
-        .badge-gray { @apply bg-gray-100 text-gray-700; }
+        @keyframes loaderFade { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Step Indicator */
-        .step-indicator { @apply w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors; }
-        .step-active { @apply bg-primary text-white ring-4 ring-primaryLight ring-opacity-30; }
-        .step-inactive { @apply bg-gray-200 text-gray-500; }
-        .step-completed { @apply bg-emerald-200 text-emerald-800; }
+        /* Authentic iOS segmented spinner (12 fading bars) */
+        .apple-spinner {
+            width: 30px; height: 30px; position: relative;
+        }
+        .apple-spinner span {
+            position: absolute; left: 50%; top: 50%;
+            width: 2.5px; height: 8px; border-radius: 2px;
+            background: #8a8a8e;
+            transform-origin: 50% 13px;
+            animation: iosFade 1s linear infinite;
+        }
+        @keyframes iosFade { 0% { opacity: 1; } 100% { opacity: 0.15; } }
 
-        /* Custom Checkbox */
-        .custom-checkbox input:checked + div { @apply bg-primary border-primary text-white; }
-        
-        /* Hide scrollbar but keep functionality */
+        /* Step Indicators */
+        .step-dot { @apply w-2 h-2 rounded-full transition-all duration-500; transition-timing-function: var(--ease-out-expo); }
+        .step-dot-active { @apply w-7 bg-apple-blue; }
+        .step-dot-inactive { @apply bg-gray-300; }
+
+        /* Custom Checkbox (Pill style) */
+        .pill-checkbox input:checked + div {
+            @apply bg-apple-blue text-white border-apple-blue;
+            box-shadow: 0 4px 12px -2px rgba(0, 113, 227, 0.5);
+            transform: scale(1.04);
+        }
+        .pill-checkbox div { @apply transition-all duration-300; transition-timing-function: var(--ease-out-expo); }
+
+        /* Hide scrollbar */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 100px); }
+        .pt-safe { padding-top: env(safe-area-inset-top, 20px); }
+
+        /* Badges */
+        .badge-premium { @apply px-3 py-1 text-[11px] font-bold rounded-full border shadow-sm backdrop-blur-md inline-flex items-center; }
+        .bp-green { @apply bg-green-50/80 text-green-700 border-green-200/50; }
+        .bp-yellow { @apply bg-yellow-50/80 text-yellow-700 border-yellow-200/50; }
+        .bp-orange { @apply bg-orange-50/80 text-orange-700 border-orange-200/50; }
+        .bp-red { @apply bg-red-50/80 text-red-700 border-red-200/50; }
+        .bp-gray { @apply bg-gray-50/80 text-gray-600 border-gray-200/50; }
+
+        /* Entrance choreography — staggered fade + rise */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in > * { opacity: 0; animation: fadeUp 0.7s var(--ease-out-expo) forwards; }
+        .fade-in > *:nth-child(1) { animation-delay: 0.05s; }
+        .fade-in > *:nth-child(2) { animation-delay: 0.13s; }
+        .fade-in > *:nth-child(3) { animation-delay: 0.21s; }
+        .fade-in > *:nth-child(4) { animation-delay: 0.29s; }
+        .reveal { opacity: 0; animation: fadeUp 0.6s var(--ease-out-expo) forwards; }
+
+        /* Skeleton shimmer (for list loading) */
+        .skeleton {
+            background: linear-gradient(100deg, rgba(0,0,0,0.04) 30%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.04) 70%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s ease-in-out infinite;
+        }
+        @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+        }
+
     </style>
 </head>
-<body class="min-h-screen relative pb-nav">
+<body class="min-h-screen relative pb-32">
 
-    <!-- Loader -->
+    <!-- Premium Loader -->
     <div id="loader" class="flex">
-        <div class="spinner mb-4"></div>
-        <div class="text-primary font-bold text-lg">กำลังประมวลผล...</div>
+        <div class="glass-panel px-7 py-6 rounded-3xl flex flex-col items-center justify-center">
+            <div class="apple-spinner mb-4" id="iosSpinner"></div>
+            <div class="text-[13px] font-semibold text-apple-textMuted">กำลังเชื่อมต่อข้อมูล</div>
+        </div>
     </div>
+    <script>
+        // Build the 12 fading bars of the iOS-style spinner
+        (function () {
+            const s = document.getElementById('iosSpinner');
+            for (let i = 0; i < 12; i++) {
+                const bar = document.createElement('span');
+                bar.style.transform = `translate(-50%, -50%) rotate(${i * 30}deg)`;
+                bar.style.animationDelay = `${(-11 + i) / 12}s`;
+                s.appendChild(bar);
+            }
+        })();
+    </script>
 
-    <!-- Header -->
-    <header class="bg-primary text-white rounded-b-[2rem] shadow-lg sticky top-0 z-40">
-        <div class="px-5 pt-5 pb-6">
-            <div class="flex justify-between items-start">
-                <div>
-                    <h1 class="text-xl font-bold tracking-tight">ระบบตรวจสุขภาพพระสงฆ์</h1>
-                    <p class="text-sm text-emerald-100 mt-1 opacity-90"><i class="fa-regular fa-calendar-check mr-1"></i> <span id="currentDate"></span></p>
-                </div>
-                <div class="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
-                    <i class="fa-solid fa-notes-medical text-2xl text-white"></i>
-                </div>
+    <!-- Header (Sticky Glass) -->
+    <header class="glass-header sticky top-0 z-40 pt-safe">
+        <div class="px-6 py-4 flex justify-between items-center max-w-2xl mx-auto">
+            <div>
+                <h1 class="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-500">ระบบตรวจสุขภาพพระสงฆ์</h1>
+                <p class="text-[12px] text-apple-textMuted font-medium mt-0.5" id="currentDate">--</p>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center text-apple-blue">
+                <i class="fa-solid fa-leaf text-lg"></i>
             </div>
         </div>
     </header>
 
-    <main class="w-full max-w-md mx-auto px-4 -mt-4 relative z-10">
+    <main class="w-full max-w-2xl mx-auto px-4 mt-6 relative z-10">
         
         <!-- =======================
              SECTION: DASHBOARD
              ======================= -->
-        <section id="section-dashboard" class="space-y-4">
-            <!-- Summary Stats (Mobile Stacked Cards) -->
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-white rounded-2xl p-4 card-shadow text-center">
-                    <div class="text-blue-500 text-2xl mb-1"><i class="fa-solid fa-users"></i></div>
-                    <div class="text-2xl font-bold text-gray-800" id="dash-total">0</div>
-                    <div class="text-xs text-gray-500 font-medium">พระสงฆ์ทั้งหมด</div>
+        <section id="section-dashboard" class="space-y-6 fade-in">
+            
+            <!-- Hero Stats -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="glass-panel rounded-3xl p-5 card-hover-effect relative overflow-hidden group">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-apple-blue/10 rounded-full blur-2xl group-hover:bg-apple-blue/20 transition-colors duration-500"></div>
+                    <div class="w-9 h-9 rounded-xl bg-apple-blue/10 text-apple-blue flex items-center justify-center text-base mb-3"><i class="fa-solid fa-users"></i></div>
+                    <div class="text-[12px] text-apple-textMuted font-semibold">พระสงฆ์ (รูป)</div>
+                    <div class="text-[2.75rem] leading-none font-bold mt-1.5 tracking-tight counter bg-clip-text text-transparent bg-gradient-to-br from-gray-900 to-gray-500" id="dash-total">0</div>
                 </div>
-                <div class="bg-white rounded-2xl p-4 card-shadow text-center">
-                    <div class="text-primary text-2xl mb-1"><i class="fa-solid fa-vihara"></i></div>
-                    <div class="text-2xl font-bold text-gray-800" id="dash-temples">0</div>
-                    <div class="text-xs text-gray-500 font-medium">วัดที่ลงพื้นที่</div>
-                </div>
-            </div>
-
-            <!-- Risk Cards -->
-            <div class="bg-white rounded-2xl p-5 card-shadow space-y-4">
-                <h3 class="font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-chart-pie text-secondary mr-2"></i> สรุปความเสี่ยง</h3>
-                
-                <div class="flex items-center justify-between p-3 bg-orange-50 rounded-xl border border-orange-100">
-                    <div class="flex items-center"><i class="fa-solid fa-weight-scale text-orange-500 w-8 text-center"></i> <span class="font-semibold text-sm">BMI เกินเกณฑ์ (อ้วน)</span></div>
-                    <div class="font-bold text-lg text-orange-600"><span id="dash-bmi">0</span> <span class="text-xs font-normal">รูป</span></div>
-                </div>
-                
-                <div class="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100">
-                    <div class="flex items-center"><i class="fa-solid fa-heart-pulse text-red-500 w-8 text-center"></i> <span class="font-semibold text-sm">ความดันโลหิตสูง</span></div>
-                    <div class="font-bold text-lg text-red-600"><span id="dash-bp">0</span> <span class="text-xs font-normal">รูป</span></div>
-                </div>
-                
-                <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-xl border border-yellow-100">
-                    <div class="flex items-center"><i class="fa-solid fa-tint text-yellow-600 w-8 text-center"></i> <span class="font-semibold text-sm">น้ำตาลผิดปกติ</span></div>
-                    <div class="font-bold text-lg text-yellow-600"><span id="dash-dtx">0</span> <span class="text-xs font-normal">รูป</span></div>
-                </div>
-
-                <div class="flex items-center justify-between p-3 bg-rose-100 rounded-xl border border-rose-200">
-                    <div class="flex items-center"><i class="fa-solid fa-truck-medical text-rose-600 w-8 text-center"></i> <span class="font-semibold text-sm text-rose-800">ควรส่งต่อพบแพทย์</span></div>
-                    <div class="font-bold text-lg text-rose-700"><span id="dash-refer">0</span> <span class="text-xs font-normal">รูป</span></div>
+                <div class="glass-panel rounded-3xl p-5 card-hover-effect relative overflow-hidden group">
+                    <div class="absolute -right-6 -top-6 w-24 h-24 bg-apple-green/10 rounded-full blur-2xl group-hover:bg-apple-green/20 transition-colors duration-500"></div>
+                    <div class="w-9 h-9 rounded-xl bg-apple-green/10 text-apple-green flex items-center justify-center text-base mb-3"><i class="fa-solid fa-vihara"></i></div>
+                    <div class="text-[12px] text-apple-textMuted font-semibold">วัด (แห่ง)</div>
+                    <div class="text-[2.75rem] leading-none font-bold mt-1.5 tracking-tight counter bg-clip-text text-transparent bg-gradient-to-br from-gray-900 to-gray-500" id="dash-temples">0</div>
                 </div>
             </div>
 
-            <button onclick="switchTab('form')" class="btn-primary mt-6">
-                <i class="fa-solid fa-user-plus mr-2"></i> เริ่มบันทึกข้อมูลใหม่
-            </button>
+            <!-- Health Summary (List style like Apple Health) -->
+            <div>
+                <h3 class="text-[13px] font-bold text-apple-textMuted mb-3 ml-2">สรุปความเสี่ยงสุขภาพ</h3>
+                <div class="glass-panel rounded-3xl p-2 shadow-sm">
+                    
+                    <div class="flex items-center justify-between p-3 px-4 hover:bg-black/[0.02] rounded-2xl transition-colors">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-500"><i class="fa-solid fa-weight-scale text-sm"></i></div>
+                            <span class="font-semibold text-[15px]">BMI เกินเกณฑ์</span>
+                        </div>
+                        <div class="font-bold text-xl text-apple-text"><span class="counter" id="dash-bmi">0</span></div>
+                    </div>
+                    
+                    <div class="w-full h-[1px] bg-gray-100/80 my-0.5 ml-14"></div>
+
+                    <div class="flex items-center justify-between p-3 px-4 hover:bg-black/[0.02] rounded-2xl transition-colors">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-500"><i class="fa-solid fa-heart-pulse text-sm"></i></div>
+                            <span class="font-semibold text-[15px]">ความดันโลหิตสูง</span>
+                        </div>
+                        <div class="font-bold text-xl text-apple-text"><span class="counter" id="dash-bp">0</span></div>
+                    </div>
+
+                    <div class="w-full h-[1px] bg-gray-100/80 my-0.5 ml-14"></div>
+
+                    <div class="flex items-center justify-between p-3 px-4 hover:bg-black/[0.02] rounded-2xl transition-colors">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600"><i class="fa-solid fa-tint text-sm"></i></div>
+                            <span class="font-semibold text-[15px]">น้ำตาลผิดปกติ</span>
+                        </div>
+                        <div class="font-bold text-xl text-apple-text"><span class="counter" id="dash-dtx">0</span></div>
+                    </div>
+
+                    <div class="w-full h-[1px] bg-gray-100/80 my-0.5 ml-14"></div>
+
+                    <div class="flex items-center justify-between p-3 px-4 bg-red-50/50 hover:bg-red-50 rounded-2xl transition-colors mt-1 border border-red-100/50">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white shadow-sm"><i class="fa-solid fa-truck-medical text-sm"></i></div>
+                            <span class="font-bold text-[15px] text-red-600">ควรส่งต่อพบแพทย์</span>
+                        </div>
+                        <div class="font-bold text-xl text-red-600"><span class="counter" id="dash-refer">0</span></div>
+                    </div>
+
+                </div>
+            </div>
+
         </section>
 
         <!-- =======================
              SECTION: FORM WIZARD
              ======================= -->
         <section id="section-form" class="hidden">
-            <div class="bg-white rounded-2xl p-5 card-shadow">
-                
-                <!-- Wizard Header -->
-                <div class="flex justify-between items-center mb-6 relative">
-                    <div class="absolute left-0 top-1/2 w-full h-1 bg-gray-100 -z-10 -translate-y-1/2"></div>
-                    <!-- ProgressBar -->
-                    <div class="absolute left-0 top-1/2 h-1 bg-primary -z-10 -translate-y-1/2 transition-all duration-300" id="progressBar" style="width: 0%;"></div>
-                    
-                    <div class="flex flex-col items-center bg-white px-2">
-                        <div id="step1-indicator" class="step-indicator step-active">1</div>
-                        <span class="text-[10px] mt-1 font-bold text-gray-500">พื้นที่</span>
-                    </div>
-                    <div class="flex flex-col items-center bg-white px-2">
-                        <div id="step2-indicator" class="step-indicator step-inactive">2</div>
-                        <span class="text-[10px] mt-1 font-bold text-gray-500">ทั่วไป</span>
-                    </div>
-                    <div class="flex flex-col items-center bg-white px-2">
-                        <div id="step3-indicator" class="step-indicator step-inactive">3</div>
-                        <span class="text-[10px] mt-1 font-bold text-gray-500">สุขภาพ</span>
-                    </div>
+            
+            <div class="flex flex-col items-center mb-6">
+                <h2 class="text-2xl font-bold text-apple-text tracking-tight mb-4" id="formTitle">บันทึกข้อมูลใหม่</h2>
+                <!-- Apple Style Dots Indicator -->
+                <div class="flex gap-2">
+                    <div id="dot1" class="step-dot step-dot-active"></div>
+                    <div id="dot2" class="step-dot step-dot-inactive"></div>
+                    <div id="dot3" class="step-dot step-dot-inactive"></div>
                 </div>
+            </div>
+
+            <div class="glass-panel rounded-[2rem] p-6 sm:p-8 shadow-glass relative overflow-hidden">
+                <!-- Decorative Blur -->
+                <div class="absolute -top-20 -right-20 w-40 h-40 bg-apple-blue/10 rounded-full blur-3xl pointer-events-none"></div>
 
                 <form id="healthForm" onsubmit="submitForm(event)">
                     <input type="hidden" id="action" name="action" value="createRecord">
                     <input type="hidden" id="RecordID" name="RecordID" value="">
                     
-                    <!-- STEP 1: ข้อมูลพื้นที่ -->
-                    <div id="step1-content" class="space-y-4">
-                        <h2 class="text-xl font-bold text-primary border-b pb-2"><i class="fa-solid fa-location-dot mr-2"></i> ข้อมูลพื้นที่</h2>
-                        
-                        <div><label class="label-style">วันที่ตรวจ <span class="text-red-500">*</span></label><input type="date" id="checkDate" name="checkDate" class="input-style" required></div>
-                        <div><label class="label-style">ชื่อวัด <span class="text-red-500">*</span></label><input type="text" id="templeName" name="templeName" class="input-style" placeholder="ระบุชื่อวัด" required></div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div><label class="label-style">บ้าน</label><input type="text" id="village" name="village" class="input-style"></div>
-                            <div><label class="label-style">หมู่ที่</label><input type="number" id="villageNo" name="villageNo" class="input-style" inputmode="numeric"></div>
-                        </div>
-                        <div><label class="label-style">ตำบล</label><input type="text" id="subDistrict" name="subDistrict" class="input-style"></div>
-                        
-                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 mt-4">
-                            <h4 class="font-bold text-gray-600 mb-3 text-sm">ผู้บันทึกข้อมูล</h4>
-                            <div class="space-y-3">
-                                <div><label class="label-style text-xs">ชื่อผู้สำรวจ / อสม.</label><input type="text" id="surveyorName" name="surveyorName" class="input-style py-2"></div>
-                                <div><label class="label-style text-xs">เบอร์โทรผู้สำรวจ</label><input type="tel" id="surveyorPhone" name="surveyorPhone" class="input-style py-2" pattern="[0-9]{9,10}" inputmode="numeric"></div>
-                                <div><label class="label-style text-xs">ผู้ลงข้อมูลเข้าระบบ <span class="text-red-500">*</span></label><input type="text" id="recorderName" name="recorderName" class="input-style py-2 bg-yellow-50" required></div>
+                    <!-- STEP 1 -->
+                    <div id="step1-content" class="transition-opacity duration-300">
+                        <h3 class="text-lg font-bold mb-5 flex items-center"><span class="w-6 h-6 rounded-full bg-apple-text text-white text-[11px] flex items-center justify-center mr-2">1</span> ข้อมูลพื้นที่</h3>
+                        <div class="space-y-4">
+                            <div><label class="label-apple">วันที่ตรวจ <span class="text-apple-red">*</span></label><input type="date" id="checkDate" name="checkDate" class="input-apple" required></div>
+                            <div><label class="label-apple">ชื่อวัด <span class="text-apple-red">*</span></label><input type="text" id="templeName" name="templeName" class="input-apple" placeholder="ระบุชื่อวัด" required></div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="label-apple">บ้าน</label><input type="text" id="village" name="village" class="input-apple"></div>
+                                <div><label class="label-apple">หมู่ที่</label><input type="number" id="villageNo" name="villageNo" class="input-apple" inputmode="numeric"></div>
                             </div>
-                        </div>
-
-                        <button type="button" onclick="nextStep(2)" class="btn-primary mt-6">ถัดไป <i class="fa-solid fa-arrow-right ml-2"></i></button>
-                    </div>
-
-                    <!-- STEP 2: ข้อมูลพระสงฆ์ -->
-                    <div id="step2-content" class="space-y-4 hidden">
-                        <h2 class="text-xl font-bold text-secondary border-b pb-2"><i class="fa-solid fa-user-large mr-2"></i> ข้อมูลทั่วไป</h2>
-                        
-                        <div><label class="label-style">ชื่อ-สกุล (ฉายา) <span class="text-red-500">*</span></label><input type="text" id="fullName" name="fullName" class="input-style" placeholder="เช่น พระสมชาย สมจิตร" required></div>
-                        <div><label class="label-style">เลขหนังสือสุทธิ</label><input type="text" id="monkId" name="monkId" class="input-style" inputmode="numeric"></div>
-                        <div><label class="label-style">เลขประจำตัวประชาชน (13 หลัก)</label><input type="text" id="idCard" name="idCard" class="input-style" pattern="[0-9]{13}" inputmode="numeric"></div>
-                        
-                        <div class="grid grid-cols-2 gap-3">
-                            <div><label class="label-style">วันเกิด</label><input type="date" id="birthDate" name="birthDate" class="input-style" onchange="calculateAge()"></div>
-                            <div><label class="label-style">อายุ (ปี)</label><input type="number" id="ageDisplay" class="input-style bg-gray-100" readonly></div>
-                        </div>
-                        <div><label class="label-style">เบอร์โทรติดต่อ</label><input type="tel" id="monkPhone" name="monkPhone" class="input-style" pattern="[0-9]{9,10}" inputmode="numeric"></div>
-
-                        <div class="flex gap-3 mt-6">
-                            <button type="button" onclick="prevStep(1)" class="btn-outline w-1/3"><i class="fa-solid fa-arrow-left"></i></button>
-                            <button type="button" onclick="nextStep(3)" class="btn-secondary w-2/3">ถัดไป <i class="fa-solid fa-arrow-right ml-2"></i></button>
+                            <div><label class="label-apple">ตำบล</label><input type="text" id="subDistrict" name="subDistrict" class="input-apple"></div>
+                            
+                            <div class="pt-4 border-t border-gray-100">
+                                <div><label class="label-apple">ผู้สำรวจ / อสม.</label><input type="text" id="surveyorName" name="surveyorName" class="input-apple"></div>
+                                <div class="mt-4"><label class="label-apple">เบอร์โทรผู้สำรวจ</label><input type="tel" id="surveyorPhone" name="surveyorPhone" class="input-apple" pattern="[0-9]{9,10}" inputmode="numeric"></div>
+                                <div class="mt-4"><label class="label-apple">ผู้ลงข้อมูล <span class="text-apple-red">*</span></label><input type="text" id="recorderName" name="recorderName" class="input-apple !bg-blue-50/30" required></div>
+                            </div>
+                            
+                            <button type="button" onclick="nextStep(2)" class="btn-apple-primary mt-8">ถัดไป</button>
                         </div>
                     </div>
 
-                    <!-- STEP 3: ข้อมูลสุขภาพ -->
-                    <div id="step3-content" class="space-y-5 hidden">
-                        <h2 class="text-xl font-bold text-accent border-b pb-2"><i class="fa-solid fa-stethoscope mr-2"></i> ข้อมูลตรวจสุขภาพ</h2>
-                        
-                        <!-- BMI -->
-                        <div class="bg-white border-2 border-emerald-50 rounded-2xl p-4">
-                            <div class="flex justify-between items-center mb-3">
-                                <h4 class="font-bold text-gray-700"><i class="fa-solid fa-weight-scale text-primary mr-1"></i> น้ำหนัก/ส่วนสูง</h4>
-                                <div id="bmiResultBadge" class="badge badge-gray">-</div>
+                    <!-- STEP 2 -->
+                    <div id="step2-content" class="hidden transition-opacity duration-300">
+                        <h3 class="text-lg font-bold mb-5 flex items-center"><span class="w-6 h-6 rounded-full bg-apple-text text-white text-[11px] flex items-center justify-center mr-2">2</span> ข้อมูลพระสงฆ์</h3>
+                        <div class="space-y-4">
+                            <div><label class="label-apple">ชื่อ-สกุล (ฉายา) <span class="text-apple-red">*</span></label><input type="text" id="fullName" name="fullName" class="input-apple" placeholder="เช่น พระสมชาย สมจิตร" required></div>
+                            <div><label class="label-apple">เลขหนังสือสุทธิ</label><input type="text" id="monkId" name="monkId" class="input-apple" inputmode="numeric"></div>
+                            <div><label class="label-apple">เลขประจำตัวประชาชน</label><input type="text" id="idCard" name="idCard" class="input-apple" pattern="[0-9]{13}" inputmode="numeric" placeholder="13 หลัก"></div>
+                            
+                            <div class="grid grid-cols-5 gap-3">
+                                <div class="col-span-3"><label class="label-apple">วันเกิด</label><input type="date" id="birthDate" name="birthDate" class="input-apple" onchange="calculateAge()"></div>
+                                <div class="col-span-2"><label class="label-apple">อายุ</label><input type="number" id="ageDisplay" class="input-apple bg-gray-50 text-center font-bold" readonly placeholder="ปี"></div>
                             </div>
-                            <div class="grid grid-cols-2 gap-3 mb-3">
-                                <div><label class="text-xs font-bold text-gray-500 mb-1 block">น้ำหนัก (กก.)</label><input type="number" step="0.1" id="weight" name="weight" class="input-style py-2" inputmode="decimal" oninput="calcBMIUI()"></div>
-                                <div><label class="text-xs font-bold text-gray-500 mb-1 block">ส่วนสูง (ซม.)</label><input type="number" step="0.1" id="height" name="height" class="input-style py-2" inputmode="decimal" oninput="calcBMIUI()"></div>
-                            </div>
-                            <div class="flex items-center bg-gray-50 p-2 rounded-lg border border-gray-100">
-                                <span class="text-sm font-bold text-gray-500 w-16">BMI:</span>
-                                <input type="text" id="bmiDisplay" class="bg-transparent font-bold text-lg w-full outline-none text-gray-800" readonly placeholder="-">
+                            <div><label class="label-apple">เบอร์โทรติดต่อ</label><input type="tel" id="monkPhone" name="monkPhone" class="input-apple" pattern="[0-9]{9,10}" inputmode="numeric"></div>
+
+                            <div class="flex gap-3 mt-8">
+                                <button type="button" onclick="prevStep(1)" class="btn-apple-secondary w-1/3">ย้อนกลับ</button>
+                                <button type="button" onclick="nextStep(3)" class="btn-apple-primary w-2/3">ถัดไป</button>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- BP -->
-                        <div class="bg-white border-2 border-blue-50 rounded-2xl p-4">
-                            <div class="flex justify-between items-center mb-3">
-                                <h4 class="font-bold text-gray-700"><i class="fa-solid fa-heart-pulse text-blue-500 mr-1"></i> ความดันโลหิต</h4>
-                                <div id="bpResultBadge" class="badge badge-gray">-</div>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <div class="w-full">
-                                    <label class="text-xs font-bold text-gray-500 mb-1 block">SBP (ตัวบน)</label>
-                                    <input type="number" id="sbp" name="sbp" class="input-style text-center font-bold text-lg py-2" inputmode="numeric" oninput="calcBPUI()" placeholder="120">
+                    <!-- STEP 3 -->
+                    <div id="step3-content" class="hidden transition-opacity duration-300">
+                        <h3 class="text-lg font-bold mb-5 flex items-center"><span class="w-6 h-6 rounded-full bg-apple-text text-white text-[11px] flex items-center justify-center mr-2">3</span> ผลตรวจสุขภาพ</h3>
+                        <div class="space-y-6">
+                            
+                            <!-- Health Block 1 -->
+                            <div class="bg-white/50 rounded-2xl p-4 border border-gray-100">
+                                <div class="flex justify-between items-center mb-3">
+                                    <label class="label-apple !mb-0">BMI (น้ำหนัก/ส่วนสูง)</label>
+                                    <div id="bmiResultBadge" class="badge-premium bp-gray">-</div>
                                 </div>
-                                <span class="text-3xl text-gray-300 font-light mt-4">/</span>
-                                <div class="w-full">
-                                    <label class="text-xs font-bold text-gray-500 mb-1 block">DBP (ตัวล่าง)</label>
-                                    <input type="number" id="dbp" name="dbp" class="input-style text-center font-bold text-lg py-2" inputmode="numeric" oninput="calcBPUI()" placeholder="80">
+                                <div class="flex items-center gap-3">
+                                    <input type="number" step="0.1" id="weight" name="weight" class="input-apple text-center" inputmode="decimal" oninput="calcBMIUI()" placeholder="น้ำหนัก (กก.)">
+                                    <input type="number" step="0.1" id="height" name="height" class="input-apple text-center" inputmode="decimal" oninput="calcBMIUI()" placeholder="ส่วนสูง (ซม.)">
                                 </div>
+                                <div class="mt-3 text-center text-sm font-semibold text-gray-500">BMI: <span id="bmiDisplay" class="text-apple-text text-lg ml-1">-</span></div>
                             </div>
-                        </div>
 
-                        <!-- DTX -->
-                        <div class="bg-white border-2 border-purple-50 rounded-2xl p-4">
-                            <div class="flex justify-between items-center mb-3">
-                                <h4 class="font-bold text-gray-700"><i class="fa-solid fa-droplet text-purple-500 mr-1"></i> น้ำตาลในเลือด</h4>
-                                <div id="dtxResultBadge" class="badge badge-gray">-</div>
-                            </div>
-                            <div class="space-y-3">
-                                <div>
-                                    <select id="glucoseStatus" name="glucoseStatus" class="input-style py-2 bg-purple-50/30" onchange="calcDTXUI()">
-                                        <option value="fasting">งดอาหาร > 8 ชม. (Fasting)</option>
-                                        <option value="random">ไม่งดอาหาร/สุ่ม (Random)</option>
-                                    </select>
+                            <!-- Health Block 2 -->
+                            <div class="bg-white/50 rounded-2xl p-4 border border-gray-100">
+                                <div class="flex justify-between items-center mb-3">
+                                    <label class="label-apple !mb-0">ความดันโลหิต (BP)</label>
+                                    <div id="bpResultBadge" class="badge-premium bp-gray">-</div>
                                 </div>
-                                <div>
-                                    <label class="text-xs font-bold text-gray-500 mb-1 block">ผลน้ำตาล (mg/dL)</label>
-                                    <input type="number" id="dtx" name="dtx" class="input-style font-bold text-lg py-2" inputmode="numeric" oninput="calcDTXUI()" placeholder="90">
-                                </div>
-                                <div class="bg-purple-50 p-2 rounded-lg border border-purple-100">
-                                    <p id="dtxRecDisplay" class="text-xs text-purple-800 font-medium">-</p>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="sbp" name="sbp" class="input-apple text-center !text-lg font-bold" inputmode="numeric" oninput="calcBPUI()" placeholder="SBP">
+                                    <span class="text-2xl text-gray-300 font-light">/</span>
+                                    <input type="number" id="dbp" name="dbp" class="input-apple text-center !text-lg font-bold" inputmode="numeric" oninput="calcBPUI()" placeholder="DBP">
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- โรคประจำตัว & หมายเหตุ -->
-                        <div class="space-y-3">
-                            <label class="label-style">โรคประจำตัว (เลือกได้หลายข้อ)</label>
-                            <div class="grid grid-cols-2 gap-2">
-                                <label class="custom-checkbox cursor-pointer relative">
-                                    <input type="checkbox" name="diseases" value="ไม่มี" class="peer sr-only" onclick="handleDiseaseNone(this)">
-                                    <div class="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-center transition-all">ไม่มี</div>
-                                </label>
-                                <label class="custom-checkbox cursor-pointer relative">
-                                    <input type="checkbox" name="diseases" value="เบาหวาน" class="peer sr-only ds-check">
-                                    <div class="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-center transition-all">เบาหวาน</div>
-                                </label>
-                                <label class="custom-checkbox cursor-pointer relative">
-                                    <input type="checkbox" name="diseases" value="ความดันโลหิตสูง" class="peer sr-only ds-check">
-                                    <div class="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-center transition-all">ความดันสูง</div>
-                                </label>
-                                <label class="custom-checkbox cursor-pointer relative">
-                                    <input type="checkbox" name="diseases" value="ไขมันในเลือดสูง" class="peer sr-only ds-check">
-                                    <div class="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-center transition-all">ไขมันฯสูง</div>
-                                </label>
-                                <label class="custom-checkbox cursor-pointer relative">
-                                    <input type="checkbox" name="diseases" value="โรคไต" class="peer sr-only ds-check">
-                                    <div class="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-center transition-all">โรคไต</div>
-                                </label>
-                                <label class="custom-checkbox cursor-pointer relative">
-                                    <input type="checkbox" name="diseases" value="โรคหัวใจ" class="peer sr-only ds-check">
-                                    <div class="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-center transition-all">โรคหัวใจ</div>
+                            <!-- Health Block 3 -->
+                            <div class="bg-white/50 rounded-2xl p-4 border border-gray-100">
+                                <div class="flex justify-between items-center mb-3">
+                                    <label class="label-apple !mb-0">ระดับน้ำตาล (DTX)</label>
+                                    <div id="dtxResultBadge" class="badge-premium bp-gray">-</div>
+                                </div>
+                                <select id="glucoseStatus" name="glucoseStatus" class="input-apple mb-3" onchange="calcDTXUI()">
+                                    <option value="fasting">งดอาหาร > 8 ชม.</option>
+                                    <option value="random">ไม่งดอาหาร/สุ่ม</option>
+                                </select>
+                                <input type="number" id="dtx" name="dtx" class="input-apple text-center !text-lg font-bold" inputmode="numeric" oninput="calcDTXUI()" placeholder="ค่า DTX (mg/dL)">
+                                <p id="dtxRecDisplay" class="text-[12px] text-center text-apple-textMuted mt-3 font-medium px-2">-</p>
+                            </div>
+
+                            <!-- Chips -->
+                            <div>
+                                <label class="label-apple">โรคประจำตัว</label>
+                                <div class="flex flex-wrap gap-2 mt-2">
+                                    <label class="pill-checkbox cursor-pointer">
+                                        <input type="checkbox" name="diseases" value="ไม่มี" class="peer sr-only" onclick="handleDiseaseNone(this)">
+                                        <div class="px-4 py-2 rounded-full border border-gray-200 bg-white text-[13px] font-semibold text-gray-600">ไม่มี</div>
+                                    </label>
+                                    <label class="pill-checkbox cursor-pointer">
+                                        <input type="checkbox" name="diseases" value="เบาหวาน" class="peer sr-only ds-check">
+                                        <div class="px-4 py-2 rounded-full border border-gray-200 bg-white text-[13px] font-semibold text-gray-600">เบาหวาน</div>
+                                    </label>
+                                    <label class="pill-checkbox cursor-pointer">
+                                        <input type="checkbox" name="diseases" value="ความดันโลหิตสูง" class="peer sr-only ds-check">
+                                        <div class="px-4 py-2 rounded-full border border-gray-200 bg-white text-[13px] font-semibold text-gray-600">ความดันสูง</div>
+                                    </label>
+                                    <label class="pill-checkbox cursor-pointer">
+                                        <input type="checkbox" name="diseases" value="ไขมันในเลือดสูง" class="peer sr-only ds-check">
+                                        <div class="px-4 py-2 rounded-full border border-gray-200 bg-white text-[13px] font-semibold text-gray-600">ไขมันฯสูง</div>
+                                    </label>
+                                    <label class="pill-checkbox cursor-pointer">
+                                        <input type="checkbox" name="diseases" value="โรคไต" class="peer sr-only ds-check">
+                                        <div class="px-4 py-2 rounded-full border border-gray-200 bg-white text-[13px] font-semibold text-gray-600">โรคไต</div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="label-apple">หมายเหตุ / อาการสำคัญ</label>
+                                <textarea id="note" name="note" rows="2" class="input-apple resize-none rounded-2xl"></textarea>
+                            </div>
+
+                            <!-- PDPA iOS Style Toggle -->
+                            <div class="flex items-start gap-3 p-4 bg-white/60 rounded-2xl border border-gray-100 mt-2">
+                                <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in mt-1">
+                                    <input type="checkbox" name="toggle" id="consent" required class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-gray-200 appearance-none cursor-pointer transition-transform duration-300 ease-in-out checked:translate-x-6 checked:border-apple-blue shadow-sm"/>
+                                    <label for="consent" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-200 cursor-pointer transition-colors duration-300 ease-in-out peer-checked:bg-apple-blue"></label>
+                                </div>
+                                <style>
+                                    .toggle-checkbox:checked { right: 0; border-color: #0071e3; }
+                                    .toggle-checkbox:checked + .toggle-label { background-color: #0071e3; }
+                                </style>
+                                <label for="consent" class="text-[11px] leading-relaxed text-apple-textMuted font-medium">
+                                    ยืนยันขออนุญาตผู้รับการตรวจเพื่อจัดเก็บข้อมูลสุขภาพในการดูแลรักษาและส่งต่อข้อมูลตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA)
                                 </label>
                             </div>
 
-                            <div class="pt-2">
-                                <label class="label-style">หมายเหตุ / อาการสำคัญ</label>
-                                <textarea id="note" name="note" rows="2" class="input-style resize-none"></textarea>
+                            <div class="flex gap-3 mt-8">
+                                <button type="button" onclick="prevStep(2)" class="btn-apple-secondary w-1/3">ย้อนกลับ</button>
+                                <button type="submit" class="btn-apple-primary w-2/3 shadow-lg shadow-apple-blue/30">บันทึกข้อมูล</button>
                             </div>
-                        </div>
-
-                        <!-- PDPA Consent -->
-                        <div class="bg-secondaryLight p-4 rounded-xl border border-blue-100 flex items-start mt-4">
-                            <input type="checkbox" id="consent" required class="mt-1 w-5 h-5 rounded text-primary">
-                            <label for="consent" class="ml-3 text-[11px] leading-tight text-gray-700">
-                                <strong>คำยินยอม (PDPA):</strong> ข้าพเจ้ายืนยันว่าได้ขออนุญาตผู้รับการตรวจในการจัดเก็บข้อมูลสุขภาพ เพื่อประโยชน์ในการดูแลรักษาและส่งต่อข้อมูลแล้ว
-                            </label>
-                        </div>
-
-                        <div class="flex gap-3 mt-6">
-                            <button type="button" onclick="prevStep(2)" class="btn-outline w-1/4"><i class="fa-solid fa-arrow-left"></i></button>
-                            <button type="submit" class="btn-primary w-3/4"><i class="fa-solid fa-save mr-2"></i> บันทึกข้อมูล</button>
                         </div>
                     </div>
                 </form>
@@ -357,161 +504,124 @@
         </section>
 
         <!-- =======================
-             SECTION: MOBILE TABLE (CARD LIST)
+             SECTION: RECORDS
              ======================= -->
         <section id="section-table" class="hidden space-y-4">
             
-            <div class="sticky top-0 z-10 bg-[#f8fafc] pt-2 pb-3">
+            <div class="sticky top-[70px] z-30 pt-2 pb-4 bg-[#f5f5f7]/90 backdrop-blur-md -mx-4 px-4">
                 <div class="relative">
-                    <input type="text" id="searchInput" placeholder="ค้นหาชื่อ, วัด, ตำบล..." class="input-style pl-12 shadow-sm border-0">
-                    <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+                    <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="ค้นหาชื่อ, วัด..." class="w-full pl-11 pr-4 py-3 bg-white/80 border border-gray-200/50 rounded-2xl focus:outline-none focus:ring-2 focus:ring-apple-blue/30 shadow-sm text-[15px] font-medium backdrop-blur-sm">
                 </div>
-                <div class="flex gap-2 mt-3">
-                    <button onclick="loadTableData()" class="flex-1 bg-white border text-gray-600 font-bold py-2 rounded-xl text-sm shadow-sm hover:bg-gray-50 active:scale-95 transition"><i class="fa-solid fa-rotate mr-1"></i> โหลดใหม่</button>
-                    <button onclick="exportCSV()" class="flex-1 bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold py-2 rounded-xl text-sm shadow-sm hover:bg-emerald-200 active:scale-95 transition"><i class="fa-solid fa-file-csv mr-1"></i> ส่งออก CSV</button>
+                <div class="flex gap-3 mt-3">
+                    <button onclick="loadTableData()" class="flex-1 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 font-semibold py-2.5 rounded-xl text-[13px] shadow-sm transition-all active:scale-95"><i class="fa-solid fa-rotate-right mr-1"></i> โหลดใหม่</button>
+                    <button onclick="exportCSV()" class="flex-1 bg-apple-text hover:bg-gray-800 text-white font-semibold py-2.5 rounded-xl text-[13px] shadow-sm transition-all active:scale-95"><i class="fa-solid fa-arrow-down-to-bracket mr-1"></i> ส่งออก CSV</button>
                 </div>
             </div>
 
-            <div id="listContainer" class="space-y-3 pb-6">
-                <!-- Cards injected here -->
-                <div class="text-center py-10 text-gray-400">กำลังโหลดข้อมูล...</div>
+            <div id="listContainer" class="space-y-4 pb-10">
+                <!-- Data Injected Here -->
             </div>
 
         </section>
 
     </main>
 
-    <!-- Mobile Bottom Navigation -->
-    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50 pb-safe">
-        <div class="flex justify-around items-center h-16">
-            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item flex flex-col items-center justify-center w-full h-full text-primary">
-                <i class="fa-solid fa-chart-pie text-xl mb-1 transition-transform"></i>
-                <span class="text-[10px] font-bold">สรุปผล</span>
-            </button>
-            
-            <!-- FAB Style Add Button -->
-            <div class="relative w-full flex justify-center -mt-6">
-                <button onclick="switchTab('form'); resetForm();" class="bg-primary text-white w-14 h-14 rounded-full shadow-[0_4px_15px_rgba(5,150,105,0.4)] flex justify-center items-center text-2xl border-4 border-white active:scale-90 transition-transform">
-                    <i class="fa-solid fa-plus"></i>
-                </button>
-            </div>
-            
-            <button onclick="switchTab('table')" id="nav-table" class="nav-item flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-gray-600">
-                <i class="fa-solid fa-list-check text-xl mb-1 transition-transform"></i>
-                <span class="text-[10px] font-bold">ประวัติ</span>
-            </button>
-        </div>
+    <!-- Floating Island Navigation (Apple Style) -->
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-sm nav-island rounded-full z-50 px-6 py-3 flex justify-between items-center pb-safe-offset">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center justify-center text-apple-blue w-16 transition-colors">
+            <i class="fa-solid fa-chart-pie text-[22px] mb-1"></i>
+            <span class="text-[10px] font-bold">สรุปผล</span>
+        </button>
+        
+        <button onclick="switchTab('form'); resetForm();" class="bg-apple-text hover:bg-black text-white w-14 h-14 rounded-full flex justify-center items-center text-2xl shadow-[0_8px_20px_rgba(0,0,0,0.15)] active:scale-90 transition-all -mt-8 border-4 border-[#f5f5f7]">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+        
+        <button onclick="switchTab('table')" id="nav-table" class="flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 w-16 transition-colors">
+            <i class="fa-solid fa-folder-open text-[22px] mb-1"></i>
+            <span class="text-[10px] font-bold">ประวัติ</span>
+        </button>
     </nav>
+    <style>
+        .pb-safe-offset { margin-bottom: env(safe-area-inset-bottom, 0); }
+    </style>
 
     <!-- JS Logic -->
     <script>
         // Set Date
-        const now = new Date();
         const thOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-        document.getElementById('currentDate').innerText = now.toLocaleDateString('th-TH', thOptions);
+        document.getElementById('currentDate').innerText = new Date().toLocaleDateString('th-TH', thOptions);
 
-        // -----------------------
-        // UI Navigation (Bottom Nav)
-        // -----------------------
+        // UI Navigation
         function switchTab(tabId) {
             document.getElementById('section-dashboard').classList.add('hidden');
             document.getElementById('section-form').classList.add('hidden');
             document.getElementById('section-table').classList.add('hidden');
             
-            document.querySelectorAll('.nav-item').forEach(el => {
-                el.classList.remove('text-primary'); el.classList.add('text-gray-400');
-            });
+            document.getElementById('nav-dashboard').classList.replace('text-apple-blue', 'text-gray-400');
+            document.getElementById('nav-table').classList.replace('text-apple-blue', 'text-gray-400');
 
             document.getElementById('section-' + tabId).classList.remove('hidden');
             
             if(tabId !== 'form') {
-                const activeNav = document.getElementById('nav-' + tabId);
-                activeNav.classList.remove('text-gray-400');
-                activeNav.classList.add('text-primary');
+                document.getElementById('nav-' + tabId).classList.replace('text-gray-400', 'text-apple-blue');
             }
 
             if (tabId === 'dashboard') loadDashboard();
             if (tabId === 'table') loadTableData();
-            window.scrollTo(0, 0);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // -----------------------
         // Form Wizard Logic
-        // -----------------------
         function nextStep(step) {
-            // Basic validation before moving
             if(step === 2) {
-                const tName = document.getElementById('templeName').value;
-                const rName = document.getElementById('recorderName').value;
-                if(!tName) { Swal.fire('แจ้งเตือน', 'กรุณาระบุชื่อวัด', 'warning'); return; }
-                if(!rName) { Swal.fire('แจ้งเตือน', 'กรุณาระบุชื่อผู้ลงข้อมูล', 'warning'); return; }
+                if(!document.getElementById('checkDate').value) return showAppleAlert('กรุณาระบุวันที่ตรวจ');
+                if(!document.getElementById('templeName').value) return showAppleAlert('กรุณาระบุชื่อวัด');
+                if(!document.getElementById('recorderName').value) return showAppleAlert('กรุณาระบุชื่อผู้ลงข้อมูล');
             }
             if(step === 3) {
-                const fName = document.getElementById('fullName').value;
-                if(!fName) { Swal.fire('แจ้งเตือน', 'กรุณาระบุชื่อ-สกุลพระสงฆ์', 'warning'); return; }
+                if(!document.getElementById('fullName').value) return showAppleAlert('กรุณาระบุชื่อพระสงฆ์');
             }
 
-            document.getElementById('step1-content').classList.add('hidden');
-            document.getElementById('step2-content').classList.add('hidden');
-            document.getElementById('step3-content').classList.add('hidden');
-            
-            document.getElementById(`step${step}-content`).classList.remove('hidden');
-            
-            // Update Indicators
             for(let i=1; i<=3; i++) {
-                const ind = document.getElementById(`step${i}-indicator`);
-                ind.className = 'step-indicator ' + (i < step ? 'step-completed' : (i === step ? 'step-active' : 'step-inactive'));
-                if(i < step) ind.innerHTML = '<i class="fa-solid fa-check"></i>';
-                else ind.innerHTML = i;
+                document.getElementById(`step${i}-content`).classList.add('hidden');
+                document.getElementById(`dot${i}`).className = 'step-dot ' + (i === step ? 'step-dot-active' : 'step-dot-inactive');
             }
-
-            // Progress bar
-            const pct = step === 1 ? 0 : (step === 2 ? 50 : 100);
-            document.getElementById('progressBar').style.width = `${pct}%`;
-            window.scrollTo(0, 0);
+            document.getElementById(`step${step}-content`).classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function prevStep(step) {
-            document.getElementById('step1-content').classList.add('hidden');
-            document.getElementById('step2-content').classList.add('hidden');
-            document.getElementById('step3-content').classList.add('hidden');
-            
-            document.getElementById(`step${step}-content`).classList.remove('hidden');
-            
             for(let i=1; i<=3; i++) {
-                const ind = document.getElementById(`step${i}-indicator`);
-                ind.className = 'step-indicator ' + (i < step ? 'step-completed' : (i === step ? 'step-active' : 'step-inactive'));
-                if(i < step) ind.innerHTML = '<i class="fa-solid fa-check"></i>';
-                else ind.innerHTML = i;
+                document.getElementById(`step${i}-content`).classList.add('hidden');
+                document.getElementById(`dot${i}`).className = 'step-dot ' + (i === step ? 'step-dot-active' : 'step-dot-inactive');
             }
-            const pct = step === 1 ? 0 : (step === 2 ? 50 : 100);
-            document.getElementById('progressBar').style.width = `${pct}%`;
-            window.scrollTo(0, 0);
+            document.getElementById(`step${step}-content`).classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // -----------------------
-        // Client-side Calcs
-        // -----------------------
+        // Calc Functions
         function calculateAge() {
-            const birthDateStr = document.getElementById('birthDate').value;
-            if(!birthDateStr) return;
-            const parts = birthDateStr.split("-");
+            const bdStr = document.getElementById('birthDate').value;
+            if(!bdStr) return;
+            const parts = bdStr.split("-");
             let y = parseInt(parts[0], 10);
             if(y > 2400) y -= 543;
             const bd = new Date(y, parseInt(parts[1])-1, parseInt(parts[2]));
             let age = new Date().getFullYear() - bd.getFullYear();
             const m = new Date().getMonth() - bd.getMonth();
-            if (m < 0 || (m === 0 && new Date().getDate() < bd.getDate())) { age--; }
+            if (m < 0 || (m === 0 && new Date().getDate() < bd.getDate())) age--;
             document.getElementById('ageDisplay').value = age > 0 ? age : 0;
         }
 
-        function getBadgeClass(status) {
-            if(!status) return 'badge-gray';
-            if(status.includes("ปกติ") && !status.includes("ผิด")) return 'badge-green';
-            if(status.includes("เริ่ม") || status.includes("เสี่ยง") || status.includes("ทั่วไป") || status.includes("เกิน")) return 'badge-yellow';
-            if(status.includes("สูง") || status.includes("อ้วนระดับ 1")) return 'badge-orange';
-            if(status.includes("วิกฤต") || status.includes("ส่งต่อ") || status.includes("สงสัย") || status.includes("อ้วนระดับ 2")) return 'badge-red';
-            return 'badge-gray';
+        function getBadgeClassPremium(status) {
+            if(!status) return 'bp-gray';
+            if(status.includes("ปกติ") && !status.includes("ผิด")) return 'bp-green';
+            if(status.includes("เริ่ม") || status.includes("เสี่ยง") || status.includes("ทั่วไป") || status.includes("เกิน")) return 'bp-yellow';
+            if(status.includes("สูง") || status.includes("อ้วนระดับ 1")) return 'bp-orange';
+            if(status.includes("วิกฤต") || status.includes("ส่งต่อ") || status.includes("สงสัย") || status.includes("อ้วนระดับ 2")) return 'bp-red';
+            return 'bp-gray';
         }
 
         function calcBMIUI() {
@@ -520,10 +630,10 @@
             const disp = document.getElementById('bmiDisplay');
             const res = document.getElementById('bmiResultBadge');
             
-            if(!w || !h) { disp.value = ""; res.innerHTML = "-"; res.className = "badge badge-gray"; return; }
+            if(!w || !h) { disp.innerText = "-"; res.className = "badge-premium bp-gray"; res.innerText="-"; return; }
             if(h >= 100) h = h/100;
             const bmi = (w / (h*h)).toFixed(2);
-            disp.value = bmi;
+            disp.innerText = bmi;
 
             let text = "";
             if (bmi < 18.5) text = "น้ำหนักน้อย";
@@ -532,7 +642,7 @@
             else if (bmi <= 29.9) text = "อ้วนระดับ 1";
             else text = "อ้วนระดับ 2";
 
-            res.className = `badge ${getBadgeClass(text)}`;
+            res.className = `badge-premium ${getBadgeClassPremium(text)}`;
             res.innerText = text;
         }
 
@@ -541,15 +651,15 @@
             const dbp = parseInt(document.getElementById('dbp').value);
             const res = document.getElementById('bpResultBadge');
 
-            if(!sbp || !dbp) { res.innerHTML = "-"; res.className="badge badge-gray"; return; }
+            if(!sbp || !dbp) { res.innerText = "-"; res.className="badge-premium bp-gray"; return; }
             let text = "";
-            if (sbp >= 180 || dbp >= 120) text = "วิกฤต ส่งต่อทันที";
-            else if (sbp >= 140 || dbp >= 90) text = "ความดันสูง ระดับ 2";
-            else if (sbp >= 130 || dbp >= 80) text = "ความดันสูง ระดับ 1";
+            if (sbp >= 180 || dbp >= 120) text = "วิกฤต";
+            else if (sbp >= 140 || dbp >= 90) text = "สูง ระดับ 2";
+            else if (sbp >= 130 || dbp >= 80) text = "สูง ระดับ 1";
             else if (sbp >= 120 && dbp < 80) text = "เริ่มสูง";
             else text = "ปกติ";
 
-            res.className = `badge ${getBadgeClass(text)}`;
+            res.className = `badge-premium ${getBadgeClassPremium(text)}`;
             res.innerText = text;
         }
 
@@ -559,20 +669,20 @@
             const res = document.getElementById('dtxResultBadge');
             const rec = document.getElementById('dtxRecDisplay');
 
-            if(!dtx) { res.innerHTML = "-"; rec.innerHTML = "-"; res.className="badge badge-gray"; return; }
+            if(!dtx) { res.innerText = "-"; rec.innerText = "-"; res.className="badge-premium bp-gray"; return; }
             let text = "", rectext = "";
 
             if (status === "fasting") {
                 if (dtx < 100) { text = "ปกติ"; rectext = "รักษาสุขภาพ ออกกำลังกาย"; }
                 else if (dtx <= 125) { text = "เสี่ยงเบาหวาน"; rectext = "ควรคุมอาหารและติดตามซ้ำ"; }
-                else { text = "สงสัยเบาหวาน"; rectext = "ควรส่งตรวจยืนยันที่ รพ."; }
+                else { text = "สงสัยเบาหวาน"; rectext = "ส่งตรวจยืนยันที่ รพ."; }
             } else {
                 if (dtx < 140) { text = "เกณฑ์ทั่วไป"; rectext = "รักษาสุขภาพ ออกกำลังกาย"; }
                 else if (dtx <= 199) { text = "น้ำตาลสูง"; rectext = "ควรประเมินซ้ำแบบงดอาหาร"; }
-                else { text = "สงสัยเบาหวาน"; rectext = "ควรส่งต่อเพื่อตรวจยืนยัน"; }
+                else { text = "สงสัยเบาหวาน"; rectext = "ส่งต่อเพื่อตรวจยืนยัน"; }
             }
 
-            res.className = `badge ${getBadgeClass(text)}`;
+            res.className = `badge-premium ${getBadgeClassPremium(text)}`;
             res.innerText = text;
             rec.innerText = rectext;
         }
@@ -586,113 +696,107 @@
             }
         }
 
-        // -----------------------
-        // API Interactions
-        // -----------------------
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyn5FtZmP5e9PmXAAuQB6mwALIhzfiRixKEfIZPjVxS4Vry8pOiSt4dklJyL_-WXdA/exec"; // << ให้แก้ไขเป็น URL ของ Web App หลังจาก Deploy
-        
-        function showLoader() { document.getElementById('loader').style.display = 'flex'; }
-        function hideLoader() { document.getElementById('loader').style.display = 'none'; }
+        // API Setup
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyn5FtZmP5e9PmXAAuQB6mwALIhzfiRixKEfIZPjVxS4Vry8pOiSt4dklJyL_-WXdA/exec"; // << URL Web App
+
+        function showAppleAlert(msg, icon='warning') {
+            Swal.fire({
+                text: msg, icon: icon,
+                confirmButtonColor: '#0071e3',
+                customClass: { popup: 'rounded-3xl shadow-glass border border-gray-100', confirmButton: 'rounded-xl' }
+            });
+        }
 
         function callAPI(action, payload, callback) {
-            showLoader();
+            document.getElementById('loader').style.display = 'flex';
             
             if (typeof google !== 'undefined' && google.script && google.script.run) {
                 if(action.startsWith('get') || action === 'dashboard' || action === 'listRecords' || action === 'search') {
-                    google.script.run
-                        .withSuccessHandler(res => { hideLoader(); handleResponse(res, callback); })
-                        .withFailureHandler(err => { hideLoader(); showError(err); })
+                    google.script.run.withSuccessHandler(r => { document.getElementById('loader').style.display = 'none'; handleResponse(r, callback); })
+                        .withFailureHandler(e => { document.getElementById('loader').style.display = 'none'; showAppleAlert(e, 'error'); })
                         .doGet({ parameter: { action: action, ...payload } });
                 } else {
-                    google.script.run
-                        .withSuccessHandler(res => { hideLoader(); handleResponse(res, callback); })
-                        .withFailureHandler(err => { hideLoader(); showError(err); })
+                    google.script.run.withSuccessHandler(r => { document.getElementById('loader').style.display = 'none'; handleResponse(r, callback); })
+                        .withFailureHandler(e => { document.getElementById('loader').style.display = 'none'; showAppleAlert(e, 'error'); })
                         .doPost({ parameter: { action: action }, postData: { contents: JSON.stringify(payload) } });
                 }
             } else {
                 if (!SCRIPT_URL) {
-                    hideLoader();
-                    Swal.fire('ข้อผิดพลาด', 'ไม่พบ SCRIPT_URL กรุณาใส่ URL Web App ในโค้ด', 'error');
-                    return;
+                    document.getElementById('loader').style.display = 'none';
+                    return showAppleAlert('กรุณาตั้งค่า SCRIPT_URL', 'error');
                 }
-                
-                let fetchOptions = {};
-                let url = SCRIPT_URL + "?action=" + action;
-
+                let fetchOptions = {}, url = SCRIPT_URL + "?action=" + action;
                 if(action.startsWith('get') || action === 'dashboard' || action === 'listRecords' || action === 'search') {
-                    if(payload) {
-                        for(let key in payload) url += `&${key}=${encodeURIComponent(payload[key])}`;
-                    }
+                    if(payload) for(let key in payload) url += `&${key}=${encodeURIComponent(payload[key])}`;
                     fetchOptions = { method: 'GET' };
                 } else {
-                    fetchOptions = {
-                        method: 'POST',
-                        body: JSON.stringify(payload),
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-                    };
+                    fetchOptions = { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'text/plain;charset=utf-8' } };
                 }
 
-                fetch(url, fetchOptions)
-                    .then(r => r.json())
-                    .then(res => { hideLoader(); handleResponse(JSON.stringify(res), callback); })
-                    .catch(err => { hideLoader(); showError(err); });
+                fetch(url, fetchOptions).then(r => r.json())
+                    .then(r => { document.getElementById('loader').style.display = 'none'; handleResponse(JSON.stringify(r), callback); })
+                    .catch(e => { document.getElementById('loader').style.display = 'none'; showAppleAlert(e, 'error'); });
             }
         }
 
         function handleResponse(resStr, callback) {
             try {
                 const res = typeof resStr === 'string' ? JSON.parse(resStr) : resStr;
-                if(res.success) {
-                    if(callback) callback(res.data);
-                } else {
-                    showError(res.message);
-                }
-            } catch(e) {
-                showError("รูปแบบข้อมูลตอบกลับไม่ถูกต้อง: " + e.message);
+                if(res.success) { if(callback) callback(res.data); } 
+                else { showAppleAlert(res.message, 'error'); }
+            } catch(e) { showAppleAlert("Error formatting", 'error'); }
+        }
+
+        // Animate Counters
+        function animateValue(id, start, end, duration) {
+            if (start === end) return;
+            let obj = document.getElementById(id);
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                // Ease out cubic
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                obj.innerHTML = Math.floor(easeProgress * (end - start) + start);
+                if (progress < 1) { window.requestAnimationFrame(step); }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        function updateDashCounters(data) {
+            if(!data) return;
+            const map = {
+                'dash-total': data.totalMonks, 'dash-temples': data.totalTemples,
+                'dash-bmi': data.highBmiCount, 'dash-bp': data.highBpCount,
+                'dash-dtx': data.abnormalDtxCount, 'dash-refer': data.referCount
+            };
+            for(let id in map) {
+                const el = document.getElementById(id);
+                const current = parseInt(el.innerText) || 0;
+                animateValue(id, current, map[id] || 0, 1500);
             }
         }
 
-        function showError(msg) {
-            Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: msg, confirmButtonColor: '#059669', customClass: { popup: 'rounded-2xl' } });
+        function loadDashboard() {
+            callAPI('dashboard', {}, function(data) { updateDashCounters(data); });
         }
 
-        // -----------------------
         // Submit Form
-        // -----------------------
         function submitForm(e) {
             e.preventDefault();
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
-            
-            const diseases = [];
-            document.querySelectorAll('input[name="diseases"]:checked').forEach(el => diseases.push(el.value));
-            data.diseases = diseases;
+            data.diseases = Array.from(document.querySelectorAll('input[name="diseases"]:checked')).map(el => el.value);
 
-            const action = data.action || 'createRecord';
-
-            callAPI(action, data, function(result) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'สำเร็จ!',
-                    text: 'บันทึกข้อมูลเข้าระบบเรียบร้อยแล้ว',
-                    confirmButtonColor: '#059669',
-                    customClass: { popup: 'rounded-2xl' }
-                }).then(() => {
-                    const savedRecorder = data.recorderName;
-                    const savedTemple = data.templeName;
-                    const savedSurveyor = data.surveyorName;
-                    const savedSubD = data.subDistrict;
-                    
-                    resetForm();
-                    
-                    // Keep some data for next entry
-                    document.getElementById('recorderName').value = savedRecorder;
-                    document.getElementById('templeName').value = savedTemple;
-                    document.getElementById('surveyorName').value = savedSurveyor;
-                    document.getElementById('subDistrict').value = savedSubD;
-                    
-                    switchTab('dashboard');
-                });
+            callAPI(data.action || 'createRecord', data, function() {
+                showAppleAlert('บันทึกข้อมูลเรียบร้อยแล้ว', 'success');
+                const keep = { r: data.recorderName, t: data.templeName, s: data.surveyorName, d: data.subDistrict };
+                resetForm();
+                document.getElementById('recorderName').value = keep.r;
+                document.getElementById('templeName').value = keep.t;
+                document.getElementById('surveyorName').value = keep.s;
+                document.getElementById('subDistrict').value = keep.d;
+                switchTab('dashboard');
             });
         }
 
@@ -703,95 +807,62 @@
             document.getElementById('checkDate').value = new Date().toISOString().slice(0,10);
             
             document.getElementById('ageDisplay').value = '';
-            document.getElementById('bmiDisplay').value = '';
-            document.getElementById('bmiResultBadge').innerText = '-';
-            document.getElementById('bmiResultBadge').className = 'badge badge-gray';
-            document.getElementById('bpResultBadge').innerText = '-';
-            document.getElementById('bpResultBadge').className = 'badge badge-gray';
-            document.getElementById('dtxResultBadge').innerText = '-';
-            document.getElementById('dtxResultBadge').className = 'badge badge-gray';
-            document.getElementById('dtxRecDisplay').innerText = '-';
-
+            document.getElementById('bmiDisplay').innerText = '-';
+            calcBMIUI(); calcBPUI(); calcDTXUI();
             document.querySelectorAll('input[type="checkbox"]').forEach(c => c.disabled = false);
             prevStep(1);
+            document.getElementById('formTitle').innerText = 'บันทึกข้อมูลใหม่';
         }
 
-        // -----------------------
-        // Dashboard
-        // -----------------------
-        function loadDashboard() {
-            callAPI('dashboard', {}, function(data) {
-                if(!data) return;
-                document.getElementById('dash-total').innerText = data.totalMonks || 0;
-                document.getElementById('dash-temples').innerText = data.totalTemples || 0;
-                document.getElementById('dash-bmi').innerText = data.highBmiCount || 0;
-                document.getElementById('dash-bp').innerText = data.highBpCount || 0;
-                document.getElementById('dash-dtx').innerText = data.abnormalDtxCount || 0;
-                document.getElementById('dash-refer').innerText = data.referCount || 0;
-            });
-        }
-
-        // -----------------------
-        // List (Mobile Table)
-        // -----------------------
+        // List
         let currentRecords = [];
-
         function loadTableData() {
-            callAPI('listRecords', {}, function(data) {
-                currentRecords = data || [];
-                renderList(currentRecords);
-            });
-        }
-
-        function maskIdCard(id) {
-            if(!id) return "";
-            id = String(id);
-            if(id.length === 13) return "xxxxxxxxx" + id.substring(9);
-            return id;
+            callAPI('listRecords', {}, function(data) { currentRecords = data || []; renderList(currentRecords); });
         }
 
         function renderList(records) {
             const container = document.getElementById('listContainer');
             container.innerHTML = '';
-            
             if(records.length === 0) {
-                container.innerHTML = '<div class="text-center py-10 text-gray-400 bg-white rounded-2xl border">ไม่พบข้อมูล</div>';
+                container.innerHTML = '<div class="text-center py-12 text-apple-textMuted font-medium glass-panel rounded-3xl">ไม่พบข้อมูล</div>';
                 return;
             }
-
-            records.forEach(r => {
-                const dateStr = r["วันที่ตรวจ"] ? new Date(r["วันที่ตรวจ"]).toLocaleDateString('th-TH') : (r["Timestamp"] ? new Date(r["Timestamp"]).toLocaleDateString('th-TH') : "-");
-                const badgeBMI = getBadgeClass(r["แปลผล BMI"]);
-                const badgeBP = getBadgeClass(r["แปลผลความดันโลหิต"]);
-                const badgeDTX = getBadgeClass(r["แปลผล DTX"]);
+            records.forEach((r, idx) => {
+                const dateStr = r["วันที่ตรวจ"] ? new Date(r["วันที่ตรวจ"]).toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'2-digit'}) : "-";
+                const bBMI = getBadgeClassPremium(r["แปลผล BMI"]);
+                const bBP = getBadgeClassPremium(r["แปลผลความดันโลหิต"]);
+                const bDTX = getBadgeClassPremium(r["แปลผล DTX"]);
                 
                 const card = document.createElement('div');
-                card.className = "bg-white p-4 rounded-2xl card-shadow";
+                card.className = "glass-panel p-5 rounded-3xl card-hover-effect reveal";
+                card.style.animationDelay = Math.min(idx * 0.05, 0.4) + 's';
                 card.innerHTML = `
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <div class="text-xs text-gray-400 mb-1"><i class="fa-regular fa-clock"></i> ${dateStr}</div>
-                            <h3 class="font-bold text-gray-800 text-lg">${r["ชื่อ-สกุล"] || "-"}</h3>
-                            <div class="text-sm text-primary font-medium"><i class="fa-solid fa-vihara text-xs"></i> ${r["ชื่อวัด"] || "-"}</div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex-1">
+                            <h3 class="font-bold text-apple-text text-lg tracking-tight leading-tight">${r["ชื่อ-สกุล"] || "-"}</h3>
+                            <div class="text-[12px] text-apple-textMuted font-medium mt-1 flex items-center gap-1.5"><i class="fa-solid fa-vihara text-[10px]"></i> ${r["ชื่อวัด"] || "-"}</div>
                         </div>
-                        <div class="flex space-x-2">
-                            <button onclick="editRecord('${r.RecordID}')" class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center active:scale-90 transition"><i class="fa-solid fa-pen-to-square text-sm"></i></button>
-                            <button onclick="deleteRecordPrompt('${r.RecordID}')" class="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center active:scale-90 transition"><i class="fa-solid fa-trash-can text-sm"></i></button>
+                        <div class="text-right ml-2">
+                            <div class="text-[11px] font-bold text-apple-textMuted uppercase tracking-wider bg-black/5 px-2 py-0.5 rounded-full inline-block">${dateStr}</div>
+                            <div class="flex space-x-1 mt-2 justify-end">
+                                <button onclick="editRecord('${r.RecordID}')" class="w-8 h-8 rounded-full bg-blue-50 text-apple-blue flex items-center justify-center active:scale-90 transition shadow-sm"><i class="fa-solid fa-pen text-[13px]"></i></button>
+                                <button onclick="deleteRecordPrompt('${r.RecordID}')" class="w-8 h-8 rounded-full bg-red-50 text-apple-red flex items-center justify-center active:scale-90 transition shadow-sm"><i class="fa-solid fa-trash text-[13px]"></i></button>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="mt-3 grid grid-cols-3 gap-2 border-t pt-3">
-                        <div class="text-center bg-gray-50 rounded-lg py-2">
-                            <div class="text-[10px] text-gray-500 font-bold mb-1">BMI</div>
-                            <span class="badge ${badgeBMI} !text-[10px] !px-1 truncate w-full max-w-full block">${r["แปลผล BMI"] || "-"}</span>
+                    <div class="grid grid-cols-3 gap-2 border-t border-gray-100/50 pt-3">
+                        <div class="flex flex-col gap-1 items-start">
+                            <span class="text-[10px] text-gray-400 font-bold ml-1 uppercase">BMI</span>
+                            <span class="badge-premium ${bBMI} w-full justify-center">${r["แปลผล BMI"] || "-"}</span>
                         </div>
-                        <div class="text-center bg-gray-50 rounded-lg py-2">
-                            <div class="text-[10px] text-gray-500 font-bold mb-1">ความดัน</div>
-                            <span class="badge ${badgeBP} !text-[10px] !px-1 truncate w-full max-w-full block">${r["แปลผลความดันโลหิต"] || "-"}</span>
+                        <div class="flex flex-col gap-1 items-start">
+                            <span class="text-[10px] text-gray-400 font-bold ml-1 uppercase">BP</span>
+                            <span class="badge-premium ${bBP} w-full justify-center">${r["แปลผลความดันโลหิต"] || "-"}</span>
                         </div>
-                        <div class="text-center bg-gray-50 rounded-lg py-2">
-                            <div class="text-[10px] text-gray-500 font-bold mb-1">น้ำตาล</div>
-                            <span class="badge ${badgeDTX} !text-[10px] !px-1 truncate w-full max-w-full block">${r["แปลผล DTX"] || "-"}</span>
+                        <div class="flex flex-col gap-1 items-start">
+                            <span class="text-[10px] text-gray-400 font-bold ml-1 uppercase">DTX</span>
+                            <span class="badge-premium ${bDTX} w-full justify-center">${r["แปลผล DTX"] || "-"}</span>
                         </div>
                     </div>
                 `;
@@ -801,44 +872,28 @@
 
         document.getElementById('searchInput').addEventListener('input', function(e) {
             const kw = e.target.value.toLowerCase();
-            const filtered = currentRecords.filter(r => {
-                return (
-                    String(r["ชื่อ-สกุล"]||"").toLowerCase().includes(kw) ||
-                    String(r["ชื่อวัด"]||"").toLowerCase().includes(kw) ||
-                    String(r["ตำบล"]||"").toLowerCase().includes(kw) ||
-                    String(r["เลขหนังสือสุทธิ"]||"").toLowerCase().includes(kw)
-                );
-            });
+            const filtered = currentRecords.filter(r => (String(r["ชื่อ-สกุล"]||"").toLowerCase().includes(kw) || String(r["ชื่อวัด"]||"").toLowerCase().includes(kw) || String(r["ตำบล"]||"").toLowerCase().includes(kw)));
             renderList(filtered);
         });
 
         function editRecord(id) {
             const record = currentRecords.find(r => r.RecordID === id);
             if(!record) return;
-
-            resetForm();
-            switchTab('form');
-            
+            resetForm(); switchTab('form');
+            document.getElementById('formTitle').innerText = 'แก้ไขข้อมูล';
             document.getElementById('action').value = 'updateRecord';
             document.getElementById('RecordID').value = id;
 
-            // Map data
             if(record["วันที่ตรวจ"]) {
                 const parts = String(record["วันที่ตรวจ"]).split(" ")[0].split("-");
-                if(parts.length===3) {
-                    document.getElementById('checkDate').value = String(record["วันที่ตรวจ"]).substring(0,10);
-                }
-            } else {
-                document.getElementById('checkDate').value = new Date().toISOString().slice(0,10);
+                if(parts.length===3) document.getElementById('checkDate').value = String(record["วันที่ตรวจ"]).substring(0,10);
             }
-
             document.getElementById('templeName').value = record["ชื่อวัด"] || "";
             document.getElementById('village').value = record["บ้าน"] || "";
             document.getElementById('villageNo').value = record["หมู่ที่"] || "";
             document.getElementById('subDistrict').value = record["ตำบล"] || "";
             document.getElementById('surveyorName').value = record["ผู้สำรวจ"] || "";
             document.getElementById('surveyorPhone').value = record["เบอร์โทรผู้สำรวจ"] || "";
-            
             document.getElementById('fullName').value = record["ชื่อ-สกุล"] || "";
             document.getElementById('monkId').value = record["เลขหนังสือสุทธิ"] || "";
             document.getElementById('idCard').value = record["เลขบัตรประจำตัวประชาชน"] || "";
@@ -846,54 +901,38 @@
             
             if(record["วันเดือนปีเกิด"]) {
                 const parts = record["วันเดือนปีเกิด"].split(" ")[0].split("-");
-                if(parts.length===3) {
-                    document.getElementById('birthDate').value = record["วันเดือนปีเกิด"].substring(0,10);
-                }
+                if(parts.length===3) document.getElementById('birthDate').value = record["วันเดือนปีเกิด"].substring(0,10);
             }
 
             document.getElementById('weight').value = record["น้ำหนัก"] || "";
             document.getElementById('height').value = record["ส่วนสูง"] || "";
             document.getElementById('sbp').value = record["ความดันตัวบน SBP"] || "";
             document.getElementById('dbp').value = record["ความดันตัวล่าง DBP"] || "";
-            
             if(record["สถานะการตรวจน้ำตาล"]) document.getElementById('glucoseStatus').value = record["สถานะการตรวจน้ำตาล"];
             document.getElementById('dtx').value = record["ผลน้ำตาลปลายนิ้ว DTX"] || "";
             document.getElementById('note').value = record["หมายเหตุ"] || "";
             document.getElementById('recorderName').value = record["ผู้บันทึก"] || "";
 
-            // Checkboxes
             const dsStr = record["โรคประจำตัว"] || "";
-            document.querySelectorAll('input[name="diseases"]').forEach(cb => {
-                if(dsStr.includes(cb.value)) cb.checked = true;
-            });
+            document.querySelectorAll('input[name="diseases"]').forEach(cb => { if(dsStr.includes(cb.value)) cb.checked = true; });
             if(dsStr.includes("ไม่มี")) handleDiseaseNone(document.querySelector('input[value="ไม่มี"]'));
 
-            calculateAge();
-            calcBMIUI();
-            calcBPUI();
-            calcDTXUI();
-            
-            // Go to step 1
+            calculateAge(); calcBMIUI(); calcBPUI(); calcDTXUI();
             prevStep(1);
         }
 
         function deleteRecordPrompt(id) {
             Swal.fire({
-                title: 'ยืนยันการลบ?',
-                text: "ซ่อนข้อมูลรายการนี้",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#9ca3af',
-                confirmButtonText: 'ลบ',
-                cancelButtonText: 'ยกเลิก',
-                customClass: { popup: 'rounded-2xl' }
+                title: 'ยืนยันลบข้อมูล', text: "รายการนี้จะถูกซ่อนจากระบบ",
+                icon: 'warning', showCancelButton: true,
+                confirmButtonColor: '#ff3b30', cancelButtonColor: '#86868b',
+                confirmButtonText: 'ลบข้อมูล', cancelButtonText: 'ยกเลิก',
+                customClass: { popup: 'rounded-3xl shadow-glass border', confirmButton: 'rounded-xl', cancelButton: 'rounded-xl' }
             }).then((result) => {
                 if (result.isConfirmed) {
                     callAPI('deleteRecord', { RecordID: id }, function() {
-                        Swal.fire({title: 'ลบสำเร็จ', icon: 'success', customClass: { popup: 'rounded-2xl' }, confirmButtonColor: '#059669'});
-                        loadTableData();
-                        loadDashboard();
+                        showAppleAlert('ลบข้อมูลสำเร็จ', 'success');
+                        loadTableData(); loadDashboard();
                     });
                 }
             });
@@ -902,30 +941,24 @@
         function exportCSV() {
             if(currentRecords.length === 0) return;
             const headers = Object.keys(currentRecords[0]);
-            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
-            csvContent += headers.join(",") + "\n";
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + headers.join(",") + "\n";
             currentRecords.forEach(r => {
                 const row = headers.map(h => {
-                    let cell = r[h] === null || r[h] === undefined ? "" : String(r[h]);
-                    if(h === "เลขบัตรประจำตัวประชาชน") cell = maskIdCard(cell);
+                    let cell = r[h] == null ? "" : String(r[h]);
+                    if(h === "เลขบัตรประจำตัวประชาชน" && cell.length===13) cell = "xxxxxxxxx" + cell.substring(9);
                     cell = cell.replace(/"/g, '""');
                     if (cell.search(/("|,|\n)/g) >= 0) cell = `"${cell}"`;
                     return cell;
                 });
                 csvContent += row.join(",") + "\n";
             });
-            const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `รายงานตรวจสุขภาพ_${new Date().toISOString().slice(0,10)}.csv`);
-            document.body.appendChild(link);
+            link.href = encodeURI(csvContent);
+            link.download = `รายงานสุขภาพ_${new Date().toISOString().slice(0,10)}.csv`;
             link.click();
-            document.body.removeChild(link);
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDashboard();
-        });
+        document.addEventListener('DOMContentLoaded', loadDashboard);
     </script>
 </body>
 </html>
