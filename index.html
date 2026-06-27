@@ -194,12 +194,16 @@
         crossorigin=""></script>
     <style id="area-map-css">
         #areaMap{height:14rem;width:100%;border-radius:1rem;z-index:0;background:#e8eef3}
-        #areaMap.leaflet-container{font:inherit}
-        #areaMap .leaflet-control-attribution{font-size:9px;background:rgba(255,255,255,.7)}
-        html.theme-dark #areaMap{background:#1c1c1e}
-        html.theme-dark #areaMap .leaflet-tile{filter:brightness(.85) contrast(1.05)}
-        html.theme-dark #areaMap .leaflet-control-attribution{background:rgba(28,28,30,.7);color:#98989d}
-        html.theme-dark #areaMap .leaflet-bar a{background:#2c2c2e;color:#f5f5f7;border-color:rgba(255,255,255,.1)}
+        #templeMap{height:calc(100vh - 280px);min-height:360px;width:100%;border-radius:1.25rem;z-index:0;background:#e8eef3;box-shadow:0 4px 24px -1px rgba(0,0,0,.05)}
+        #areaMap.leaflet-container,#templeMap.leaflet-container{font:inherit}
+        #areaMap .leaflet-control-attribution,#templeMap .leaflet-control-attribution{font-size:9px;background:rgba(255,255,255,.7)}
+        .temple-pin-popup .leaflet-popup-content-wrapper{border-radius:14px;box-shadow:0 8px 24px -6px rgba(17,24,39,.25)}
+        .temple-pin-popup .leaflet-popup-content{margin:12px 14px;font:inherit}
+        html.theme-dark #areaMap,html.theme-dark #templeMap{background:#1c1c1e}
+        html.theme-dark #areaMap .leaflet-tile,html.theme-dark #templeMap .leaflet-tile{filter:brightness(.85) contrast(1.05)}
+        html.theme-dark #areaMap .leaflet-control-attribution,html.theme-dark #templeMap .leaflet-control-attribution{background:rgba(28,28,30,.7);color:#98989d}
+        html.theme-dark #areaMap .leaflet-bar a,html.theme-dark #templeMap .leaflet-bar a{background:#2c2c2e;color:#f5f5f7;border-color:rgba(255,255,255,.1)}
+        html.theme-dark .temple-pin-popup .leaflet-popup-content-wrapper,html.theme-dark .temple-pin-popup .leaflet-popup-tip{background:#2c2c2e;color:#f5f5f7}
     </style>
 
     <!-- Theme init (run early to avoid a flash of the wrong theme) -->
@@ -557,23 +561,63 @@
 
         </section>
 
+        <!-- ===== MAP VIEW : แสดงตำแหน่งวัดบนแผนที่ ===== -->
+        <section id="section-map" class="hidden space-y-4 fade-in">
+            <div class="flex items-end justify-between px-1">
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight text-apple-text">แผนที่วัด</h2>
+                    <p class="text-[13px] text-apple-textMuted mt-0.5">ตำแหน่งวัดที่บันทึกพิกัดไว้ <span id="templeMapCount" class="font-semibold text-apple-blue"></span></p>
+                </div>
+                <button onclick="loadTempleMap()" class="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 font-semibold px-4 py-2 rounded-xl text-[13px] shadow-sm transition-all active:scale-95"><i class="fa-solid fa-rotate-right mr-1"></i> โหลดใหม่</button>
+            </div>
+
+            <div class="relative">
+                <div id="templeMap"></div>
+                <!-- ปุ่มไปยังตำแหน่งปัจจุบัน (GPS มือถือ) -->
+                <button onclick="TempleMap.locateMe()" title="ตำแหน่งของฉัน"
+                    class="absolute bottom-4 right-4 z-[400] w-12 h-12 rounded-full bg-white text-apple-blue shadow-lg flex items-center justify-center active:scale-90 transition-all border border-gray-200/70">
+                    <i class="fa-solid fa-location-crosshairs text-[18px]"></i>
+                </button>
+            </div>
+
+            <div id="templeMapEmpty" class="hidden glass-panel rounded-3xl py-14 px-6 flex flex-col items-center text-center">
+                <div class="w-16 h-16 rounded-2xl bg-apple-blue/10 text-apple-blue flex items-center justify-center text-2xl mb-4">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                </div>
+                <h3 class="font-bold text-apple-text text-lg tracking-tight">ยังไม่มีพิกัดวัด</h3>
+                <p class="text-[13px] text-apple-textMuted mt-1.5 max-w-[15rem] leading-relaxed">เมื่อบันทึกข้อมูลพร้อมปักหมุดพิกัดในฟอร์ม วัดจะปรากฏบนแผนที่นี้</p>
+            </div>
+        </section>
+
     </main>
 
     <!-- Floating Island Navigation (Apple Style) -->
-    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-sm nav-island rounded-full z-50 px-6 py-3 flex justify-between items-center pb-safe-offset">
-        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center justify-center text-apple-blue w-16 transition-colors">
-            <i class="fa-solid fa-chart-pie text-[22px] mb-1"></i>
-            <span class="text-[10px] font-bold">สรุปผล</span>
-        </button>
-        
-        <button onclick="switchTab('form'); resetForm();" class="bg-apple-text hover:bg-black text-white w-14 h-14 rounded-full flex justify-center items-center text-2xl shadow-[0_8px_20px_rgba(0,0,0,0.15)] active:scale-90 transition-all -mt-8 border-4 border-[#f5f5f7]">
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-sm nav-island rounded-full z-50 px-4 py-3 flex items-center pb-safe-offset">
+        <div class="flex flex-1 justify-around">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center justify-center text-apple-blue w-14 transition-colors">
+                <i class="fa-solid fa-chart-pie text-[22px] mb-1"></i>
+                <span class="text-[10px] font-bold">สรุปผล</span>
+            </button>
+            <button onclick="switchTab('map')" id="nav-map" class="flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 w-14 transition-colors">
+                <i class="fa-solid fa-map-location-dot text-[22px] mb-1"></i>
+                <span class="text-[10px] font-bold">แผนที่</span>
+            </button>
+        </div>
+
+        <button onclick="switchTab('form'); resetForm();" class="bg-apple-text hover:bg-black text-white w-14 h-14 rounded-full flex justify-center items-center text-2xl shadow-[0_8px_20px_rgba(0,0,0,0.15)] active:scale-90 transition-all -mt-8 border-4 border-[#f5f5f7] flex-shrink-0 mx-1">
             <i class="fa-solid fa-plus"></i>
         </button>
-        
-        <button onclick="switchTab('table')" id="nav-table" class="flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 w-16 transition-colors">
-            <i class="fa-solid fa-folder-open text-[22px] mb-1"></i>
-            <span class="text-[10px] font-bold">ประวัติ</span>
-        </button>
+
+        <div class="flex flex-1 justify-around">
+            <button onclick="switchTab('table')" id="nav-table" class="flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 w-14 transition-colors">
+                <i class="fa-solid fa-folder-open text-[22px] mb-1"></i>
+                <span class="text-[10px] font-bold">ประวัติ</span>
+            </button>
+            <button onclick="switchTab('dashboard')" id="nav-spacer" class="flex flex-col items-center justify-center text-transparent w-14 pointer-events-none" aria-hidden="true">
+                <i class="fa-solid fa-circle text-[22px] mb-1"></i>
+                <span class="text-[10px] font-bold">.</span>
+            </button>
+        </div>
     </nav>
     <style>
         .pb-safe-offset { margin-bottom: env(safe-area-inset-bottom, 0); }
@@ -670,9 +714,11 @@
             document.getElementById('section-dashboard').classList.add('hidden');
             document.getElementById('section-form').classList.add('hidden');
             document.getElementById('section-table').classList.add('hidden');
-            
+            document.getElementById('section-map').classList.add('hidden');
+
             document.getElementById('nav-dashboard').classList.replace('text-apple-blue', 'text-gray-400');
             document.getElementById('nav-table').classList.replace('text-apple-blue', 'text-gray-400');
+            document.getElementById('nav-map').classList.replace('text-apple-blue', 'text-gray-400');
 
             const activeSection = document.getElementById('section-' + tabId);
             activeSection.classList.remove('hidden');
@@ -689,6 +735,7 @@
             if (tabId === 'dashboard') loadDashboard();
             if (tabId === 'table') loadTableData();
             if (tabId === 'form') AreaMap.ensure();
+            if (tabId === 'map') loadTempleMap();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -1293,6 +1340,125 @@
 
             return { ensure, setCoords, clear, locate, onInput };
         })();
+
+        // ===== แผนที่รวม : แสดงตำแหน่งวัดทั้งหมด =====
+        const TempleMap = (function () {
+            const DEFAULT_CENTER = [15.87, 100.99]; // ศูนย์กลางประเทศไทย
+            const DEFAULT_ZOOM = 6;
+            let map = null, layer = null, meMarker = null, ready = false;
+
+            function init() {
+                if (typeof L === 'undefined') { console.warn('Leaflet ยังโหลดไม่เสร็จ'); return false; }
+                map = L.map('templeMap', { center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }).addTo(map);
+                layer = L.layerGroup().addTo(map);
+                return true;
+            }
+
+            function ensure() {
+                if (!ready) ready = init();
+                if (map) setTimeout(function () { map.invalidateSize(); }, 120);
+                return ready;
+            }
+
+            function esc(s) {
+                return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+                });
+            }
+
+            // รวมข้อมูลรายบุคคลให้เหลือ "วัดละ 1 หมุด" พร้อมนับจำนวนการตรวจ
+            function groupTemples(records) {
+                const map2 = {};
+                (records || []).forEach(function (r) {
+                    const lat = parseFloat(r['ละติจูด']);
+                    const lng = parseFloat(r['ลองจิจูด']);
+                    if (!isFinite(lat) || !isFinite(lng)) return;
+                    const key = (r['ชื่อวัด'] || '(ไม่ระบุชื่อวัด)') + '|' + lat.toFixed(5) + '|' + lng.toFixed(5);
+                    if (!map2[key]) {
+                        map2[key] = {
+                            name: r['ชื่อวัด'] || '(ไม่ระบุชื่อวัด)',
+                            subDistrict: r['ตำบล'] || '',
+                            village: r['บ้าน'] || '',
+                            villageNo: r['หมู่ที่'] || '',
+                            lat: lat, lng: lng, count: 0
+                        };
+                    }
+                    map2[key].count++;
+                });
+                return Object.keys(map2).map(function (k) { return map2[k]; });
+            }
+
+            function render(records) {
+                if (!ensure()) return;
+                layer.clearLayers();
+                const temples = groupTemples(records);
+                const countEl = document.getElementById('templeMapCount');
+                const emptyEl = document.getElementById('templeMapEmpty');
+
+                if (temples.length === 0) {
+                    if (countEl) countEl.textContent = '';
+                    if (emptyEl) emptyEl.classList.remove('hidden');
+                    map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+                    return;
+                }
+                if (emptyEl) emptyEl.classList.add('hidden');
+                if (countEl) countEl.textContent = '(' + temples.length + ' วัด)';
+
+                const latlngs = [];
+                temples.forEach(function (t) {
+                    const loc = [t.village ? ('บ้าน' + esc(t.village)) : '', t.villageNo ? ('หมู่ ' + esc(t.villageNo)) : '', t.subDistrict ? ('ต.' + esc(t.subDistrict)) : '']
+                        .filter(Boolean).join(' ');
+                    const html =
+                        '<div style="min-width:160px">' +
+                            '<div style="font-weight:700;font-size:15px;margin-bottom:2px">' + esc(t.name) + '</div>' +
+                            (loc ? '<div style="font-size:12px;opacity:.7;margin-bottom:6px">' + loc + '</div>' : '') +
+                            '<div style="font-size:12px"><i class="fa-solid fa-user-doctor" style="margin-right:5px;color:#0071e3"></i>บันทึกการตรวจ <b>' + t.count + '</b> ครั้ง</div>' +
+                            '<a href="https://www.google.com/maps/search/?api=1&query=' + t.lat + ',' + t.lng + '" target="_blank" rel="noopener" ' +
+                              'style="display:inline-block;margin-top:8px;font-size:12px;font-weight:600;color:#0071e3;text-decoration:none">' +
+                              '<i class="fa-solid fa-diamond-turn-right" style="margin-right:4px"></i>นำทาง</a>' +
+                        '</div>';
+                    L.marker([t.lat, t.lng]).addTo(layer).bindPopup(html, { className: 'temple-pin-popup' });
+                    latlngs.push([t.lat, t.lng]);
+                });
+
+                if (latlngs.length === 1) {
+                    map.setView(latlngs[0], 15);
+                } else {
+                    map.fitBounds(L.latLngBounds(latlngs).pad(0.15));
+                }
+            }
+
+            // ไปยังตำแหน่งปัจจุบันจาก GPS ของมือถือ
+            function locateMe() {
+                if (!ensure()) return;
+                if (!navigator.geolocation) return showAppleAlert('อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง');
+                document.getElementById('loader').style.display = 'flex';
+                navigator.geolocation.getCurrentPosition(function (pos) {
+                    document.getElementById('loader').style.display = 'none';
+                    const ll = [pos.coords.latitude, pos.coords.longitude];
+                    if (meMarker) { map.removeLayer(meMarker); }
+                    meMarker = L.circleMarker(ll, { radius: 8, color: '#fff', weight: 2, fillColor: '#0071e3', fillOpacity: 1 })
+                        .addTo(map).bindPopup('ตำแหน่งของคุณ');
+                    map.setView(ll, 15);
+                }, function (err) {
+                    document.getElementById('loader').style.display = 'none';
+                    let msg = 'ไม่สามารถระบุตำแหน่งได้';
+                    if (err.code === 1) msg = 'ไม่ได้รับอนุญาตให้เข้าถึงตำแหน่ง';
+                    showAppleAlert(msg);
+                }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+            }
+
+            return { ensure, render, locateMe };
+        })();
+
+        function loadTempleMap() {
+            TempleMap.ensure();
+            callAPI('listRecords', {}, function (data) { TempleMap.render(data || []); });
+        }
 
         document.addEventListener('DOMContentLoaded', loadDashboard);
     </script>
