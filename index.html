@@ -999,14 +999,28 @@
             const data = Object.fromEntries(formData.entries());
             data.diseases = Array.from(document.querySelectorAll('input[name="diseases"]:checked')).map(el => el.value);
 
+            // กันบันทึกฟอร์มว่าง กรณีข้อมูลจำเป็นหายไประหว่างทาง (เช่น ย้อนกลับมาลบข้อมูล)
+            if (!data.checkDate || !data.templeName || !data.recorderName || !data.fullName) {
+                return showAppleAlert('กรุณากรอกข้อมูลที่จำเป็นให้ครบก่อนบันทึก');
+            }
+
             callAPI(data.action || 'createRecord', data, function() {
                 showAppleAlert('บันทึกข้อมูลเรียบร้อยแล้ว', 'success');
-                const keep = { r: data.recorderName, t: data.templeName, s: data.surveyorName, d: data.subDistrict };
+                // เก็บข้อมูลของวัด/พื้นที่ไว้ใช้ต่อ เพื่อไม่ต้องกรอกซ้ำเวลาบันทึกพระรูปถัดไปในวัดเดียวกัน
+                const keep = {
+                    r: data.recorderName, t: data.templeName, s: data.surveyorName, d: data.subDistrict,
+                    v: data.village, vn: data.villageNo, sp: data.surveyorPhone,
+                    lat: data.latitude, lng: data.longitude
+                };
                 resetForm();
                 document.getElementById('recorderName').value = keep.r;
                 document.getElementById('templeName').value = keep.t;
                 document.getElementById('surveyorName').value = keep.s;
                 document.getElementById('subDistrict').value = keep.d;
+                document.getElementById('village').value = keep.v;
+                document.getElementById('villageNo').value = keep.vn;
+                document.getElementById('surveyorPhone').value = keep.sp;
+                if (keep.lat && keep.lng) AreaMap.setCoords(keep.lat, keep.lng);
                 switchTab('dashboard');
             });
         }
